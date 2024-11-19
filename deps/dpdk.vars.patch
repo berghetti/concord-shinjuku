@@ -1,0 +1,17 @@
+diff --git a/mk/rte.vars.mk b/mk/rte.vars.mk
+index 28982a5f0d..003894d3c2 100644
+--- a/mk/rte.vars.mk
++++ b/mk/rte.vars.mk
+@@ -103,9 +103,9 @@ export RTE_EXEC_ENV
+ export RTE_TOOLCHAIN
+ 
+ # developer build automatically enabled in a git tree
+-ifneq ($(wildcard $(RTE_SDK)/.git),)
+-RTE_DEVEL_BUILD := y
+-endif
++#ifneq ($(wildcard $(RTE_SDK)/.git),)
++#RTE_DEVEL_BUILD := y
++#endif
+ 
+ # SRCDIR is the current source directory
+ ifdef S

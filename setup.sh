@@ -18,6 +18,7 @@ make -s -j16 -C deps/dpdk config T=x86_64-native-linuxapp-gcc
 cd deps/dpdk
     git apply ../dpdk.mk.patch
     git apply ../dpdk_i40e.patch
+    git apply ../dpdk.vars.patch
 cd ../../
 make -s -j16 -C deps/dpdk
 
