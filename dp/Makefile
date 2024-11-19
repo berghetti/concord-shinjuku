@@ -46,6 +46,8 @@ LEVELDB_INC = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/include
 
 # ================================
 
+AFP_DIR = $(ROOT_DIR)/../../../afp
+
 
 DPDK	= ../deps/dpdk
 DUNE	= ../deps/dune
@@ -53,6 +55,7 @@ PCIDMA	= ../deps/pcidma
 DPDK_INC = -I$(DPDK)/build/include -I$(DPDK)/lib/librte_eal/common -I$(DPDK)/drivers/net/ixgbe -I$(DPDK)/drivers/net/i40e
 INC	= -I../inc -I$(DUNE)/libdune -I../inc/lwip -I../inc/lwip/ipv4 -I../inc/lwip/ipv6 $(DPDK_INC) -include$(DUNE)/kern/dune.h
 INC	+= -I$(PCIDMA) -I$(CONCORD_INC) -I$(CONCORD_INC) -I$(LEVELDB_INC)
+INC	+= -I$(AFP_DIR)/deps/fake-work
 CC	= gcc
 CFLAGS= -g -Wall -fno-pie -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -O3 -mno-red-zone $(INC) -D__KERNEL__ $(EXTRA_CFLAGS)
 LD	= g++
@@ -131,8 +134,10 @@ DPDK_LIBS+=$(DPDK)/build/lib/librte_eal.a
 DPDK_LIBS+=$(DPDK)/build/lib/librte_mempool.a
 DPDK_LIBS+=$(DPDK)/build/lib/librte_ring.a
 
+AFP_FAKE_WORK_LIB_CONCORD=$(AFP_DIR)/deps/fake-work/libfakework-concord.a
+
 shinjuku: $(DEPENDENCY) $(OBJS) $(DUNE_LIB) ix.ld
-	$(LD) $(WRAP_FLAGS) $(LDFLAGS) -o shinjuku $(OBJS) -rdynamic $(DUNE_LIB)  $(DPDK_LIBS) $(LDLIBS)
+	$(LD) $(WRAP_FLAGS) $(LDFLAGS) -o shinjuku $(OBJS) -rdynamic $(DUNE_LIB)  $(DPDK_LIBS) $(AFP_FAKE_WORK_LIB_CONCORD) $(LDLIBS)
 
 clean:
 	cp core/context_fast.S /tmp/context_fast.S
