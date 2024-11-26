@@ -103,7 +103,7 @@ static int ip_input(struct eth_fg *cur_fg, struct mbuf *pkt, struct ip_hdr *hdr)
                         goto out;
                 return ret;
 	case IPPROTO_ICMP:
-                log_warn("ip: dropping ICMP packet\n");
+                log_debug("ip: dropping ICMP packet\n");
                 goto out;
 	default:
 		goto out;

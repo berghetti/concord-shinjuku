@@ -458,36 +458,36 @@ int main(int argc, char *argv[])
   
 	log_info("init done\n");
 
-	options  = leveldb_options_create();
-	roptions = leveldb_readoptions_create();
-	woptions = leveldb_writeoptions_create();
-	leveldb_options_set_create_if_missing(options, 1);
-	
+	//options  = leveldb_options_create();
+	//roptions = leveldb_readoptions_create();
+	//woptions = leveldb_writeoptions_create();
+	//leveldb_options_set_create_if_missing(options, 1);
+	//
 
-	char *err = NULL;
-    db = leveldb_open(options, "/tmpfs/experiments/leveldb", &err);
-	assert(!err);
+	//char *err = NULL;
+    	//db = leveldb_open(options, "/tmpfs/experiments/leveldb", &err);
+	//assert(!err);
 
-	char * db_err;
-	int len;
-	leveldb_put(db, woptions, "mykey", 5, "myval", 5, &db_err);
+	//char * db_err;
+	//int len;
+	//leveldb_put(db, woptions, "mykey", 5, "myval", 5, &db_err);
 
-	char * retdb = leveldb_get(db, roptions, "mykey", 5, &len, &db_err);
-	log_info("read data db: %s \n", retdb);
-	// assert(strcmp(retdb,"myval") == 0);
+	//char * retdb = leveldb_get(db, roptions, "mykey", 5, &len, &db_err);
+	//log_info("read data db: %s \n", retdb);
+	//// assert(strcmp(retdb,"myval") == 0);
 
-	// prepare_complex_db(db, DB_NUM_KEYS, woptions);
-	prepare_simple_db(db, DB_NUM_KEYS, woptions);
-	check_db_sequential(db, DB_NUM_KEYS,roptions);
+	//// prepare_complex_db(db, DB_NUM_KEYS, woptions);
+	//prepare_simple_db(db, DB_NUM_KEYS, woptions);
+	//check_db_sequential(db, DB_NUM_KEYS,roptions);
 
 	flag = 1;
 
-	log_info("Init Leveldb - with prefilled random key-values\n");
+	//log_info("Init Leveldb - with prefilled random key-values\n");
 	uint64_t start_time = get_us();
-	while(get_us() - start_time < 2*1000000);
+	//while(get_us() - start_time < 2*1000000);
 	INIT_FINISHED = true;
 
-  do_dispatching(CFG.num_cpus);
+	do_dispatching(CFG.num_cpus);
 	log_info("Killing all threads");
 	for (i = 0; i < CFG.num_cpus-1; i++) {
 		pthread_kill(tid[i],9);

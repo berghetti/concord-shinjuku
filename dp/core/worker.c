@@ -210,7 +210,7 @@ static void test_handler(struct dune_tf *tf)
 {
     asm volatile("cli" :::);
 
-    #if SCHEDULE_METHOD == METHOD_YIELD
+    #if SCHEDULE_METHOD != METHOD_PI
     log_err("Interrupt fired \n");
     #endif
     dune_apic_eoi();
@@ -225,10 +225,10 @@ static void test_handler(struct dune_tf *tf)
 void concord_func()
 {
     // printf("Concord func called from tid %d\n", gettid());
-    if(concord_lock_counter != 0)
-    {
-        return;
-    }
+    //if(concord_lock_counter != 0)
+    //{
+    //    return;
+    //}
     concord_preempt_now = 0;
 
     /* Turn on to benchmark timeliness of yields */
@@ -639,8 +639,8 @@ void do_work(void)
     while (true)
     {
 #ifdef FAKE_WORK
-        handle_fake_request();
-        fake_eth_process_send();
+        //handle_fake_request();
+        //fake_eth_process_send();
 #else
 
         eth_process_reclaim();

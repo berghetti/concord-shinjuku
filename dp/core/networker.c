@@ -66,7 +66,7 @@ struct db_req* generate_db_req(struct request * req);
 void do_networking(void)
 {
 	log_info("Do networking started \n");
-	int i,j, num_recv;
+	int i, j, num_recv;
 	rqueue.head = NULL;
 	while (1)
 	{
@@ -84,7 +84,7 @@ void do_networking(void)
 			mempool_free(&request_mempool, req);
 		}
 		networker_pointers.free_cnt = 0;
-		j = 0;
+	j = 0;
         for (i = 0; i < num_recv; i++) {
 			struct request * req = rq_update(&rqueue, recv_mbufs[i]);
 			if (req) {
@@ -93,7 +93,7 @@ void do_networking(void)
 				j++;
 			}
         }
-        networker_pointers.cnt = j;
+        networker_pointers.cnt = num_recv;
 	}
 }
 
