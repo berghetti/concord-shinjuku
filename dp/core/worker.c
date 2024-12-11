@@ -627,8 +627,8 @@ void do_work(void)
     log_info("do_work: Waiting for dispatcher work\n");
 
     // sure about vdso
-    for (size_t i = 0; i < 50; i++)
-        get_ns();
+    //for (size_t i = 0; i < 50; i++)
+    //    get_ns();
 
     worker_tid = gettid();
 
