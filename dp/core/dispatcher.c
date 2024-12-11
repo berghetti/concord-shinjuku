@@ -332,7 +332,7 @@ static inline void handle_networker(uint64_t cur_time)
 			ret = context_alloc(&cont);
 			if (unlikely(ret))
 			{
-				log_warn("Cannot allocate context\n");
+				//log_warn("Cannot allocate context\n");
 				request_enqueue(&frqueue, networker_pointers.reqs[i]);
                                 continue;
                         }
