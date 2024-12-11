@@ -753,10 +753,11 @@ void do_dispatching(int num_cpus)
 		handle_networker(cur_time);
 		dispatch_requests(cur_time);
 	#if DISPATCHER_DO_WORK == 1
-		//if(epoch_slack > dispatcher_work_thresh){
-		//	epoch_slack-= dispatcher_work_thresh;
-		//	dispatcher_do_work(cur_time);
-		//}
+    puts("here");
+		if(epoch_slack > dispatcher_work_thresh){
+			epoch_slack-= dispatcher_work_thresh;
+			dispatcher_do_work(cur_time);
+		}
 	#endif
 
 		// Turn on to measure dispatching latencies
