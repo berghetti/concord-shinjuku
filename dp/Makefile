@@ -27,8 +27,8 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # ======= MODIFY THIS VARS =======
 CONCORD_ROOT = $(ROOT_DIR)/../..
-CONCORD_LIB = $(CONCORD_ROOT)/src/lib/concord.a
-CONCORD_INC = $(CONCORD_ROOT)/src/lib
+#CONCORD_LIB = $(CONCORD_ROOT)/src/lib/concord.a
+#CONCORD_INC = $(CONCORD_ROOT)/src/lib
 
 # Libs
 # _ 	 ==> concord
@@ -135,6 +135,7 @@ DPDK_LIBS+=$(DPDK)/build/lib/librte_mempool.a
 DPDK_LIBS+=$(DPDK)/build/lib/librte_ring.a
 
 AFP_FAKE_WORK_LIB_CONCORD=$(AFP_DIR)/deps/fake-work/libfakework-concord.a
+AFP_FAKE_WORK_LIB_CONCORD+=$(AFP_DIR)/deps/fake-work/libfakework-concord-rdtsc.a
 
 shinjuku: $(DEPENDENCY) $(OBJS) $(DUNE_LIB) ix.ld
 	$(LD) $(WRAP_FLAGS) $(LDFLAGS) -o shinjuku $(OBJS) -rdynamic $(DUNE_LIB)  $(DPDK_LIBS) $(AFP_FAKE_WORK_LIB_CONCORD) $(LDLIBS)
