@@ -362,7 +362,7 @@ afp_server(void *buff)
 	//uint32_t type = data[3];
 	uint32_t ns_sleep = data[5];
 
-	fake_work_ns(ns_sleep);
+	fake_work_ns_rdtsc(ns_sleep);
 }
 
 /**
@@ -383,30 +383,7 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     
     afp_server(data);
 
-    struct message * req = (struct message *) data;
-
-    // Added for leveldb
-    // leveldb_readoptions_t *readoptions = leveldb_readoptions_create();
-    // leveldb_iterator_t *iter = leveldb_create_iterator(db, readoptions);
-    // for (leveldb_iter_seek_to_first(iter); leveldb_iter_valid(iter); leveldb_iter_next(iter))
-    // {
-    //     char *retr_key;
-    //     size_t klen;
-    //     retr_key = leveldb_iter_key(iter, &klen);
-    //     if (req->runNs > 0)
-    //         break;
-    // }
-    // leveldb_iter_destroy(iter);
-    // leveldb_readoptions_destroy(readoptions);
-
-         
     asm volatile ("cli":::);
-
-    struct message resp;
-    resp.genNs = req->genNs;
-    resp.runNs = req->runNs;
-    resp.type = TYPE_RES;
-    resp.req_id = req->req_id;
 
     struct ip_tuple new_id = {
         .src_ip = id->dst_ip,
@@ -415,7 +392,6 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
         .dst_port = id->src_port};
 
     ret = udp_send_one((void *)data, AFP_PAYLOAD_SIZE, &new_id);
-    //ret = udp_send_one((void *)&resp, sizeof(struct message), &new_id);
 
 //     if (ret)
 //         log_warn("udp_send failed with error %d\n", ret);
@@ -559,7 +535,7 @@ static inline void dispatcher_handle_new_packet(void)
         uint32_t msw_id = ((uint64_t)id & 0xFFFFFFFF00000000) >> 32;
         uint32_t lsw_id = (uint64_t)id & 0x00000000FFFFFFFF;
 
-        dispatcher_cont = (struct mbuf *) dispatcher_job.rnbl;
+        dispatcher_cont = dispatcher_job.rnbl;
         getcontext_fast(dispatcher_cont);
         set_context_link(dispatcher_cont, &dispatcher_uctx_main);
         makecontext(dispatcher_cont, (void (*)(void))dispatcher_generic_work, 4, msw, lsw,
@@ -703,7 +679,7 @@ static inline void dispatcher_handle_request(void)
 void dispatcher_do_work(uint64_t cur_time){
 
 #ifdef FAKE_WORK
-        dispatcher_handle_fake_request(cur_time);
+        //dispatcher_handle_fake_request(cur_time);
 #else
 
         eth_process_reclaim();
