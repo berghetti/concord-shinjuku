@@ -12,4 +12,5 @@ LOAD_LEVEL=${1:-50}
 rm -rf /tmpfs/experiments/leveldb/
 make clean 2> /dev/null 
 make -j6 -s LOAD_LEVEL=0 SCHEDULE_METHOD=3 DISPATCHER_DO_WORK=1
+#make -j6 -s LOAD_LEVEL=0 SCHEDULE_METHOD=3
 ./dp/shinjuku

@@ -353,6 +353,18 @@ static inline void handle_networker(uint64_t cur_time)
 	}
 }
 
+#define AFP_PAYLOAD_SIZE (sizeof(uint64_t)*6)
+
+static void
+afp_server(void *buff)
+{
+	uint64_t *data = buff;
+	//uint32_t type = data[3];
+	uint32_t ns_sleep = data[5];
+
+	fake_work_ns(ns_sleep);
+}
+
 /**
  * generic_work - generic function acting as placeholder for application-level
  *                work
@@ -368,6 +380,8 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     struct ip_tuple *id = (struct ip_tuple *)((uint64_t)msw_id << 32 | lsw_id);
     void *data = (void *)((uint64_t)msw << 32 | lsw);
     int ret;
+    
+    afp_server(data);
 
     struct message * req = (struct message *) data;
 
@@ -385,13 +399,6 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     // leveldb_iter_destroy(iter);
     // leveldb_readoptions_destroy(readoptions);
 
-    uint64_t i = 0;
-    do
-    {
-        asm volatile("nop");
-        i++;
-    } while (i / 0.233 < req->runNs);
-
          
     asm volatile ("cli":::);
 
@@ -407,7 +414,8 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
         .src_port = id->dst_port,
         .dst_port = id->src_port};
 
-    ret = udp_send_one((void *)&resp, sizeof(struct message), &new_id);
+    ret = udp_send_one((void *)data, AFP_PAYLOAD_SIZE, &new_id);
+    //ret = udp_send_one((void *)&resp, sizeof(struct message), &new_id);
 
 //     if (ret)
 //         log_warn("udp_send failed with error %d\n", ret);
