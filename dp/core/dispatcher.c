@@ -381,6 +381,7 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     struct ip_tuple *id = (struct ip_tuple *)((uint64_t)msw_id << 32 | lsw_id);
     void *data = (void *)((uint64_t)msw << 32 | lsw);
     int ret;
+
     
     afp_server(data);
 
@@ -733,10 +734,10 @@ void do_dispatching(int num_cpus)
 		handle_networker(cur_time);
 		dispatch_requests(cur_time);
 	#if DISPATCHER_DO_WORK == 1
-	if(epoch_slack > dispatcher_work_thresh){
-			epoch_slack-= dispatcher_work_thresh;
-			dispatcher_do_work(cur_time);
-		}
+	  if(epoch_slack > dispatcher_work_thresh){
+	  		epoch_slack-= dispatcher_work_thresh;
+	  		dispatcher_do_work(cur_time);
+	  	}
 	#endif
 
 		// Turn on to measure dispatching latencies

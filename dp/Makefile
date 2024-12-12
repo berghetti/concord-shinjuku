@@ -34,14 +34,14 @@ CONCORD_ROOT = $(ROOT_DIR)/../..
 # _ 	 ==> concord
 # _clear ==> without modifications
 # _rdtsc ==> with rdtsc pass
-CONCORD_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/lib/concord_apileveldb.a
+#CONCORD_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/lib/concord_apileveldb.a
 CONCORD_INC = $(CONCORD_ROOT)/benchmarks/leveldb/lib
 
 # Libs
 # _ 	 ==> concord
 # _clear ==> without modifications
 # _rdtsc ==> with rdtsc pass
-LEVELDB_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/concord_libleveldb.a
+#LEVELDB_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/concord_libleveldb.a
 LEVELDB_INC = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/include
 
 # ================================
@@ -134,7 +134,7 @@ DPDK_LIBS+=$(DPDK)/build/lib/librte_eal.a
 DPDK_LIBS+=$(DPDK)/build/lib/librte_mempool.a
 DPDK_LIBS+=$(DPDK)/build/lib/librte_ring.a
 
-AFP_FAKE_WORK_LIB_CONCORD=$(AFP_DIR)/deps/fake-work/libfakework-concord.a
+AFP_FAKE_WORK_LIB_CONCORD+=$(AFP_DIR)/deps/fake-work/libfakework-concord.a
 AFP_FAKE_WORK_LIB_CONCORD+=$(AFP_DIR)/deps/fake-work/libfakework-concord-rdtsc.a
 
 shinjuku: $(DEPENDENCY) $(OBJS) $(DUNE_LIB) ix.ld
