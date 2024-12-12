@@ -101,9 +101,10 @@ char* plugin_file = "../benchmarks/leveldb/lib/concord_apileveldb_rdtsc.so";
 
 void concord_rdtsc_func()
 {
-    if (concord_lock_counter != 0 || unlikely(!INIT_FINISHED))
-        return;
-    swapcontext(dispatcher_cont, &dispatcher_uctx_main);
+    //if (concord_lock_counter != 0 || unlikely(!INIT_FINISHED))
+    //    return;
+    //swapcontext(dispatcher_cont, &dispatcher_uctx_main);
+    swapcontext_fast_to_control(dispatcher_cont, &dispatcher_uctx_main);
 }
 
 struct dispatcher_request dispatcher_job;
@@ -316,41 +317,41 @@ static inline void handle_worker(uint8_t i, uint64_t cur_time)
 
 static inline void handle_networker(uint64_t cur_time)
 {
-	int i, ret;
-	uint8_t type;
-	ucontext_t *cont;
+    int i, ret;
+    uint8_t type;
+    ucontext_t *cont;
 
-	if (networker_pointers.cnt != 0)
-	{
-		for (i = 0; i < networker_pointers.cnt; i++)
-		{
-			if(unlikely(networker_pointers.reqs[i] == NULL))
-			{
-				continue;
-			}
-			dispatched_pkts++;
-			ret = context_alloc(&cont);
-			if (unlikely(ret))
-			{
-				//log_warn("Cannot allocate context\n");
-				request_enqueue(&frqueue, networker_pointers.reqs[i]);
-                                continue;
-                        }
-                        type = networker_pointers.types[i];
-                        tskq_enqueue_tail(&tskq, cont,
-                                          networker_pointers.reqs[i],
-                                          type, PACKET, cur_time);
-                }
+    if (networker_pointers.cnt != 0)
+    {
+        for (i = 0; i < networker_pointers.cnt; i++)
+        {
+            if(unlikely(networker_pointers.reqs[i] == NULL))
+            {
+                continue;
+            }
+            dispatched_pkts++;
+            ret = context_alloc(&cont);
+            if (unlikely(ret))
+            {
+                //log_warn("Cannot allocate context\n");
+                request_enqueue(&frqueue, networker_pointers.reqs[i]);
+                continue;
+            }
+            type = networker_pointers.types[i];
+            tskq_enqueue_tail(&tskq, cont,
+                    networker_pointers.reqs[i],
+                    type, PACKET, cur_time);
+        }
 
-                for (i = 0; i < ETH_RX_MAX_BATCH; i++) {
-                        struct request * req = request_dequeue(&frqueue);
-                        if (!req)
-                                break;
-                        networker_pointers.reqs[i] = req;
-			networker_pointers.free_cnt++;
-		}
-		networker_pointers.cnt = 0;
-	}
+        for (i = 0; i < ETH_RX_MAX_BATCH; i++) {
+            struct request * req = request_dequeue(&frqueue);
+            if (!req)
+                break;
+            networker_pointers.reqs[i] = req;
+            networker_pointers.free_cnt++;
+        }
+        networker_pointers.cnt = 0;
+    }
 }
 
 #define AFP_PAYLOAD_SIZE (sizeof(uint64_t)*6)
@@ -525,7 +526,7 @@ static inline void dispatcher_handle_new_packet(void)
     int ret;
     void *data;
     struct ip_tuple *id;
-    struct mbuf *pkt = (struct mbuf *)dispatcher_job.req;
+    struct mbuf *pkt = (struct mbuf *)dispatcher_job.req->mbufs[0];
     dispatcher_parse_packet(pkt, &data, &id);
 
     if (data)
@@ -646,7 +647,6 @@ static inline void dispatcher_handle_fake_request(uint64_t cur_time)
 
 static inline void dispatcher_handle_request(void)
 {
-
    if(dispatcher_job_status != ONGOING) {
       void *rnbl;
       struct request* req;
@@ -661,6 +661,7 @@ static inline void dispatcher_handle_request(void)
       dispatcher_job.timestamp = timestamp;
       dispatcher_job_status = ONGOING;
    }
+
 
     concord_start_time = rdtsc();
     concord_preempt_after_cycle = epoch_slack;
@@ -678,14 +679,9 @@ static inline void dispatcher_handle_request(void)
 
 void dispatcher_do_work(uint64_t cur_time){
 
-#ifdef FAKE_WORK
-        //dispatcher_handle_fake_request(cur_time);
-#else
-
         eth_process_reclaim();
         eth_process_send();
         dispatcher_handle_request();
-#endif
 }
 
 /**
@@ -737,7 +733,7 @@ void do_dispatching(int num_cpus)
 		handle_networker(cur_time);
 		dispatch_requests(cur_time);
 	#if DISPATCHER_DO_WORK == 1
-		if(epoch_slack > dispatcher_work_thresh){
+	if(epoch_slack > dispatcher_work_thresh){
 			epoch_slack-= dispatcher_work_thresh;
 			dispatcher_do_work(cur_time);
 		}
