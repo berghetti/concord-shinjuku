@@ -718,24 +718,24 @@ void do_dispatching(int num_cpus)
 	bool flag = true;
 	while (1)
 	{
-		if (flag && TEST_STARTED && IS_FIRST_PACKET && (TEST_FINISHED || ((get_us() - TEST_START_TIME) > BENCHMARK_DURATION_US )))
-		{
-			TEST_END_TIME = get_us();
-			log_info("\n\n ----------- Benchmark FINISHED ----------- \n");
-			log_info("Benchmark - Total number of packets %d \n", TEST_TOTAL_PACKETS_COUNTER);
-			log_info("Benchmark - %d DB_GET, %d DB_ITERATOR, %d DB_PUT, %d DB_DELETE, %d DB_SEEK\n", TEST_RCVD_DB_GET, TEST_RCVD_DB_ITERATOR, TEST_RCVD_DB_PUT, TEST_RCVD_DB_DELETE, TEST_RCVD_DB_SEEK);
-			log_info("Benchmark - Time elapsed (us): %llu\n",  TEST_END_TIME- TEST_START_TIME);
-			uint64_t rate =  dispatched_pkts*1000/(TEST_END_TIME- TEST_START_TIME);
-			log_info("Dispatched pkts, rate: %llu : %llu KRps\n", dispatched_pkts,rate);
-			print_stats();
-			for(int i = 0; i <DISPATCHER_STATS_ITERATOR_LIMIT; i++){
-				if(dispatcher_timestamps[i].start)
-					log_info("Dispatching latency: %llu\n", dispatcher_timestamps[i].end-dispatcher_timestamps[i].start);
-			}
-			log_info("Dispatcher exiting\n");
-			flag = false;
-			break;
-		}
+		//if (flag && TEST_STARTED && IS_FIRST_PACKET && (TEST_FINISHED || ((get_us() - TEST_START_TIME) > BENCHMARK_DURATION_US )))
+		//{
+		//	TEST_END_TIME = get_us();
+		//	log_info("\n\n ----------- Benchmark FINISHED ----------- \n");
+		//	log_info("Benchmark - Total number of packets %d \n", TEST_TOTAL_PACKETS_COUNTER);
+		//	log_info("Benchmark - %d DB_GET, %d DB_ITERATOR, %d DB_PUT, %d DB_DELETE, %d DB_SEEK\n", TEST_RCVD_DB_GET, TEST_RCVD_DB_ITERATOR, TEST_RCVD_DB_PUT, TEST_RCVD_DB_DELETE, TEST_RCVD_DB_SEEK);
+		//	log_info("Benchmark - Time elapsed (us): %llu\n",  TEST_END_TIME- TEST_START_TIME);
+		//	uint64_t rate =  dispatched_pkts*1000/(TEST_END_TIME- TEST_START_TIME);
+		//	log_info("Dispatched pkts, rate: %llu : %llu KRps\n", dispatched_pkts,rate);
+		//	print_stats();
+		//	for(int i = 0; i <DISPATCHER_STATS_ITERATOR_LIMIT; i++){
+		//		if(dispatcher_timestamps[i].start)
+		//			log_info("Dispatching latency: %llu\n", dispatcher_timestamps[i].end-dispatcher_timestamps[i].start);
+		//	}
+		//	log_info("Dispatcher exiting\n");
+		//	flag = false;
+		//	break;
+		//}
 
 		cur_time = rdtsc();
 

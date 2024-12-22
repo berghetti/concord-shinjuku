@@ -27,8 +27,10 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # ======= MODIFY THIS VARS =======
 CONCORD_ROOT = $(ROOT_DIR)/../..
-CONCORD_LIB = $(CONCORD_ROOT)/src/lib/concord.a
-CONCORD_INC = $(CONCORD_ROOT)/src/lib
+#CONCORD_LIB = $(CONCORD_ROOT)/src/lib/concord.a
+#CONCORD_INC = $(CONCORD_ROOT)/src/lib
+CONCORD_LIB = $(CONCORD_ROOT)/benchmarks/looplib/lib/concord_loop.a
+CONCORD_INC = $(CONCORD_ROOT)/benchmarks/looplib/lib
 
 # Libs
 # _ 	 ==> concord
@@ -36,11 +38,11 @@ CONCORD_INC = $(CONCORD_ROOT)/src/lib
 # _rdtsc ==> with rdtsc pass
 CONCORD_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/lib/concord_apileveldb.a
 CONCORD_INC = $(CONCORD_ROOT)/benchmarks/leveldb/lib
-
-# Libs
-# _ 	 ==> concord
-# _clear ==> without modifications
-# _rdtsc ==> with rdtsc pass
+#
+## Libs
+## _ 	 ==> concord
+## _clear ==> without modifications
+## _rdtsc ==> with rdtsc pass
 LEVELDB_LIB = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/concord_libleveldb.a
 LEVELDB_INC = $(CONCORD_ROOT)/benchmarks/leveldb/leveldb/include
 
@@ -58,7 +60,7 @@ CFLAGS= -g -Wall -fno-pie -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -O
 LD	= g++
 LDFLAGS	= -T ix.ld -no-pie
 LDLIBS	= -lrt  -lpthread -lm -lnuma -ldl -lconfig $(LEVELDB_LIB) $(CONCORD_LIB) -lgflags -lsnappy -lz -llz4
-WRAP_FLAGS = -Wl,-wrap,malloc -Wl,-wrap=malloc -Wl,-wrap=free -Wl,-wrap=calloc -Wl,-wrap=realloc 
+WRAP_FLAGS = -Wl,-wrap,malloc -Wl,-wrap=malloc -Wl,-wrap=free -Wl,-wrap=calloc -Wl,-wrap=realloc
 
 ifneq ($(DEBUG),)
 CFLAGS += -DDEBUG
