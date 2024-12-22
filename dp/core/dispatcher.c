@@ -103,7 +103,8 @@ void concord_rdtsc_func()
 {
     if (concord_lock_counter != 0 || unlikely(!INIT_FINISHED))
         return;
-    swapcontext(dispatcher_cont, &dispatcher_uctx_main);
+    
+    swapcontext_fast_to_control(dispatcher_cont, &dispatcher_uctx_main);
 }
 
 struct dispatcher_request dispatcher_job;
@@ -332,7 +333,7 @@ static inline void handle_networker(uint64_t cur_time)
 			ret = context_alloc(&cont);
 			if (unlikely(ret))
 			{
-				log_warn("Cannot allocate context\n");
+				//log_warn("Cannot allocate context\n");
 				request_enqueue(&frqueue, networker_pointers.reqs[i]);
                                 continue;
                         }
@@ -353,6 +354,25 @@ static inline void handle_networker(uint64_t cur_time)
 	}
 }
 
+#define AFP_PAYLOAD_SIZE (sizeof(uint64_t)*6)
+
+static void
+afp_server(void *buff)
+{
+	uint64_t *data = buff;
+	uint32_t type = data[3];
+    
+  if(type == 1)
+    {
+        // short
+        dl_simpleloop(BENCHMARK_DB_GET_SPIN);
+    }
+  else
+    { 
+        dl_simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
+    }
+}
+
 /**
  * generic_work - generic function acting as placeholder for application-level
  *                work
@@ -369,37 +389,11 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     void *data = (void *)((uint64_t)msw << 32 | lsw);
     int ret;
 
-    struct message * req = (struct message *) data;
 
-    // Added for leveldb
-    // leveldb_readoptions_t *readoptions = leveldb_readoptions_create();
-    // leveldb_iterator_t *iter = leveldb_create_iterator(db, readoptions);
-    // for (leveldb_iter_seek_to_first(iter); leveldb_iter_valid(iter); leveldb_iter_next(iter))
-    // {
-    //     char *retr_key;
-    //     size_t klen;
-    //     retr_key = leveldb_iter_key(iter, &klen);
-    //     if (req->runNs > 0)
-    //         break;
-    // }
-    // leveldb_iter_destroy(iter);
-    // leveldb_readoptions_destroy(readoptions);
-
-    uint64_t i = 0;
-    do
-    {
-        asm volatile("nop");
-        i++;
-    } while (i / 0.233 < req->runNs);
-
+    afp_server(data);
          
     asm volatile ("cli":::);
 
-    struct message resp;
-    resp.genNs = req->genNs;
-    resp.runNs = req->runNs;
-    resp.type = TYPE_RES;
-    resp.req_id = req->req_id;
 
     struct ip_tuple new_id = {
         .src_ip = id->dst_ip,
@@ -407,7 +401,8 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
         .src_port = id->dst_port,
         .dst_port = id->src_port};
 
-    ret = udp_send_one((void *)&resp, sizeof(struct message), &new_id);
+    //ret = udp_send_one((void *)&resp, sizeof(struct message), &new_id);
+    ret = udp_send_one((void *)data, AFP_PAYLOAD_SIZE, &new_id);
 
 //     if (ret)
 //         log_warn("udp_send failed with error %d\n", ret);

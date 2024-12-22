@@ -368,88 +368,98 @@ static inline int smart_tskq_dequeue(struct task_queue * tq, void ** rnbl_ptr,
 
 static inline struct request * rq_update(struct request_queue * rq, struct mbuf * pkt)
 {
-	// Quickly parse packet without doing checks
-        struct eth_hdr * ethhdr = mbuf_mtod(pkt, struct eth_hdr *);
-        struct ip_hdr *  iphdr = mbuf_nextd(ethhdr, struct ip_hdr *);
-        int hdrlen = iphdr->header_len * sizeof(uint32_t);
-	struct udp_hdr * udphdr = mbuf_nextd_off(iphdr, struct udp_hdr *,
-                                                 hdrlen);
-	// Get data and udp header
-	void * data = mbuf_nextd(udphdr, void *);
-	struct message * msg = (struct message *) data;
-
-	uint16_t type = msg->type - req_offset;
-        log_debug("RQ received packet type %d\n", type);
-        uint16_t seq_num = msg->seq_num;
-        uint16_t client_id = msg->client_id;
-        uint32_t req_id = msg->req_id;
-        uint32_t pkts_length = msg->pkts_length / sizeof(struct message);
-	if (pkts_length == 1) {
-		struct request * req = mempool_alloc(&request_mempool);
+  // simplify to AFP test
+	struct request * req = mempool_alloc(&request_mempool);
         if (unlikely(!req)) {
-            mbuf_free(pkt);
-            return NULL;
+        	mbuf_free(pkt);
+        	return NULL;
         }
-		req->type = type;
-		req->pkts_length = 1;
-		req->mbufs[0] = pkt;
-		return req;
-	}
+	req->type = 0;
+	req->pkts_length = 1;
+	req->mbufs[0] = pkt;
+	return req;
+	// Quickly parse packet without doing checks
+  //      struct eth_hdr * ethhdr = mbuf_mtod(pkt, struct eth_hdr *);
+  //      struct ip_hdr *  iphdr = mbuf_nextd(ethhdr, struct ip_hdr *);
+  //      int hdrlen = iphdr->header_len * sizeof(uint32_t);
+	//struct udp_hdr * udphdr = mbuf_nextd_off(iphdr, struct udp_hdr *,
+  //                                               hdrlen);
+	//// Get data and udp header
+	//void * data = mbuf_nextd(udphdr, void *);
+	//struct message * msg = (struct message *) data;
 
-        if (!rq->head) {
-                struct request_cell * rc = mempool_alloc(&rq_mempool);
-                rc->pkts_remaining = pkts_length - 1;
-                rc->client_id = client_id;
-                rc->req_id = req_id;
-                rc->req = mempool_alloc(&request_mempool);
-                rc->req->mbufs[seq_num] = pkt;
-                rc->req->pkts_length = pkts_length;
-                rc->req->type = type;
-                rc->next = NULL;
-                rc->prev = NULL;
-                rq->head = rc;
-                return NULL;
-        }
-	struct request_cell * cur = rq->head;
-        while (cur != NULL) {
-                if (cur->client_id == client_id && cur->req_id == req_id) {
-                        cur->req->mbufs[seq_num] = pkt;
-                        cur->pkts_remaining--;
-			if (cur->pkts_remaining == 0) {
-				struct request * req = cur->req;
-				if (cur->prev == NULL) {
-					rq->head = cur->next;
-					if (rq->head != NULL)
-						rq->head->prev = NULL;
-				} else {
-					cur->prev->next = cur->next;
-					if (cur->next != NULL)
-						cur->next->prev = cur->prev;
-				}
-				mempool_free(&rq_mempool, cur);
-				return req;
-			}
-			return NULL;
-		}
-		cur = cur->next;
-        }
+	//uint16_t type = msg->type - req_offset;
+  //      log_debug("RQ received packet type %d\n", type);
+  //      uint16_t seq_num = msg->seq_num;
+  //      uint16_t client_id = msg->client_id;
+  //      uint32_t req_id = msg->req_id;
+  //      uint32_t pkts_length = msg->pkts_length / sizeof(struct message);
+	//if (pkts_length == 1) {
+	//	struct request * req = mempool_alloc(&request_mempool);
+  //      if (unlikely(!req)) {
+  //          mbuf_free(pkt);
+  //          return NULL;
+  //      }
+	//	req->type = type;
+	//	req->pkts_length = 1;
+	//	req->mbufs[0] = pkt;
+	//	return req;
+	//}
 
-        if (cur == NULL) {
-                struct request_cell * rc = mempool_alloc(&rq_mempool);
-                rc->pkts_remaining = pkts_length - 1;
-                rc->client_id = client_id;
-                rc->req_id = req_id;
-                rc->req = mempool_alloc(&request_mempool);
-                rc->req->mbufs[seq_num] = pkt;
-                rc->req->pkts_length = pkts_length;
-                rc->req->type = type;
-                rc->next = rq->head;
-		rc->next->prev = rc;
-		rc->prev = NULL;
-                rq->head = rc;
-                return NULL;
-        }
-        return NULL;
+  //      if (!rq->head) {
+  //              struct request_cell * rc = mempool_alloc(&rq_mempool);
+  //              rc->pkts_remaining = pkts_length - 1;
+  //              rc->client_id = client_id;
+  //              rc->req_id = req_id;
+  //              rc->req = mempool_alloc(&request_mempool);
+  //              rc->req->mbufs[seq_num] = pkt;
+  //              rc->req->pkts_length = pkts_length;
+  //              rc->req->type = type;
+  //              rc->next = NULL;
+  //              rc->prev = NULL;
+  //              rq->head = rc;
+  //              return NULL;
+  //      }
+	//struct request_cell * cur = rq->head;
+  //      while (cur != NULL) {
+  //              if (cur->client_id == client_id && cur->req_id == req_id) {
+  //                      cur->req->mbufs[seq_num] = pkt;
+  //                      cur->pkts_remaining--;
+	//		if (cur->pkts_remaining == 0) {
+	//			struct request * req = cur->req;
+	//			if (cur->prev == NULL) {
+	//				rq->head = cur->next;
+	//				if (rq->head != NULL)
+	//					rq->head->prev = NULL;
+	//			} else {
+	//				cur->prev->next = cur->next;
+	//				if (cur->next != NULL)
+	//					cur->next->prev = cur->prev;
+	//			}
+	//			mempool_free(&rq_mempool, cur);
+	//			return req;
+	//		}
+	//		return NULL;
+	//	}
+	//	cur = cur->next;
+  //      }
+
+  //      if (cur == NULL) {
+  //              struct request_cell * rc = mempool_alloc(&rq_mempool);
+  //              rc->pkts_remaining = pkts_length - 1;
+  //              rc->client_id = client_id;
+  //              rc->req_id = req_id;
+  //              rc->req = mempool_alloc(&request_mempool);
+  //              rc->req->mbufs[seq_num] = pkt;
+  //              rc->req->pkts_length = pkts_length;
+  //              rc->req->type = type;
+  //              rc->next = rq->head;
+	//	rc->next->prev = rc;
+	//	rc->prev = NULL;
+  //              rq->head = rc;
+  //              return NULL;
+  //      }
+  //      return NULL;
 }
 
 static inline struct request * fake_work_rq_update(struct request_queue * rq, 
