@@ -360,17 +360,20 @@ static void
 afp_server(void *buff)
 {
 	uint64_t *data = buff;
-	uint32_t type = data[3];
+	//uint32_t type = data[3];
+	uint32_t ns_sleep = data[5];
+
+  fake_work_ns_rdtsc(ns_sleep);
     
-  if(type == 1)
-    {
-        // short
-        dl_simpleloop(BENCHMARK_DB_GET_SPIN);
-    }
-  else
-    { 
-        dl_simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
-    }
+  //if(type == 1)
+  //  {
+  //      // short
+  //      dl_simpleloop(BENCHMARK_DB_GET_SPIN);
+  //  }
+  //else
+  //  { 
+  //      dl_simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
+  //  }
 }
 
 /**

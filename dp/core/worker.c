@@ -68,6 +68,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
+#include <fake_work.h> // afp fake work
+
 #define gettid() ((pid_t)syscall(SYS_gettid))
 
 extern volatile int * cpu_preempt_points [MAX_WORKERS];
@@ -241,17 +243,20 @@ static void
 afp_server(void *buff)
 {
 	uint64_t *data = buff;
-	uint32_t type = data[3];
+	//uint32_t type = data[3];
+	uint32_t ns_sleep = data[5];
+
+  fake_work_ns(ns_sleep);
     
-  if(type == 1)
-    {
-        // short
-        simpleloop(BENCHMARK_DB_GET_SPIN);
-    }
-  else
-    { 
-        simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
-    }
+  //if(type == 1)
+  //  {
+  //      // short
+  //      simpleloop(BENCHMARK_DB_GET_SPIN);
+  //  }
+  //else
+  //  { 
+  //      simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
+  //  }
 }
 
 /**
