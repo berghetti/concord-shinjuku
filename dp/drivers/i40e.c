@@ -399,7 +399,7 @@ static int i40e_rx_poll(struct eth_rx_queue *rx)
 		rxdp->read.pkt_addr = rte_cpu_to_le_64(maddr);
 
 		if (unlikely(!valid_checksum || eth_recv(rx, b))) {
-			log_info("i40e: dropping packet\n");
+			//log_info("i40e: dropping packet\n");
 			mbuf_free(b);
 		}
 
