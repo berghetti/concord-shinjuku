@@ -458,15 +458,15 @@ int main(int argc, char *argv[])
   
 	log_info("init done\n");
 
-	//options  = leveldb_options_create();
-	//roptions = leveldb_readoptions_create();
-	//woptions = leveldb_writeoptions_create();
+	options  = leveldb_options_create();
+	roptions = leveldb_readoptions_create();
+	woptions = leveldb_writeoptions_create();
 	//leveldb_options_set_create_if_missing(options, 1);
 	
 
-	//char *err = NULL;
-  //  db = leveldb_open(options, "/tmpfs/experiments/leveldb", &err);
-	//assert(!err);
+	char *err = NULL;
+  db = leveldb_open(options, "/tmpfs/my_db", &err);
+	assert(!err);
 
 	//char * db_err;
 	//int len;
@@ -492,6 +492,9 @@ int main(int argc, char *argv[])
 	for (i = 0; i < CFG.num_cpus-1; i++) {
 		pthread_kill(tid[i],9);
 	}
+
+	log_info("Closing DB\n");
+	leveldb_close(db);
 	return 0;
 }
 
