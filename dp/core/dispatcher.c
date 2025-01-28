@@ -376,6 +376,56 @@ afp_server(void *buff)
   //  }
 }
 
+static void
+do_get ( char *key )
+{
+  size_t len;
+  char *value, *err = NULL;
+  
+  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
+        
+  value = dl_cncrd_leveldb_get ( db, readoptions, key, strlen ( key ), &len, &err );
+  free ( value );
+  free ( err );
+
+  leveldb_readoptions_destroy ( readoptions );
+}
+
+static void
+do_scan ( void )
+{
+  const char *retr_key;
+  size_t len;
+
+  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
+        
+  dl_cncrd_leveldb_scan(db, readoptions, 'musa');
+ 
+  leveldb_readoptions_destroy ( readoptions );
+}
+
+static void
+leveldb_server(void *buff)
+{
+#define GET 1
+#define SCAN 2
+	uint64_t *data = buff;
+	uint32_t type = data[3];
+	uint64_t key = data[4];
+  
+  switch ( type )
+    {
+      case GET:
+        do_get ( ( char * ) &key );
+        break;
+      case SCAN:
+        do_scan ();
+        break;
+      default:
+        assert ( 0 && "Invalid request type" );
+    }
+}
+
 /**
  * generic_work - generic function acting as placeholder for application-level
  *                work
@@ -393,7 +443,8 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     int ret;
 
 
-    afp_server(data);
+    //afp_server(data);
+    leveldb_server(data);
          
     asm volatile ("cli":::);
 
