@@ -40,8 +40,8 @@ AFP_INC = $(AFP_DIR)/deps/fake-work/
 # _ 	 ==> concord
 # _clear ==> without modifications
 # _rdtsc ==> with rdtsc pass
-#CONCORD_LIB += $(CONCORD_ROOT)/benchmarks/leveldb/lib/concord_apileveldb.a
-#CONCORD_INC += -I$(CONCORD_ROOT)/benchmarks/leveldb/lib
+CONCORD_LIB += $(CONCORD_ROOT)/benchmarks/leveldb/lib/concord_apileveldb.a
+CONCORD_INC += -I$(CONCORD_ROOT)/benchmarks/leveldb/lib
 #
 ## Libs
 ## _ 	 ==> concord
@@ -61,7 +61,7 @@ DPDK_INC = -I$(DPDK)/build/include -I$(DPDK)/lib/librte_eal/common -I$(DPDK)/dri
 INC	= -I../inc -I$(DUNE)/libdune -I../inc/lwip -I../inc/lwip/ipv4 -I../inc/lwip/ipv6 $(DPDK_INC) -include$(DUNE)/kern/dune.h
 INC	+= -I$(PCIDMA) -I$(CONCORD_INC) -I$(CONCORD_INC) -I$(LEVELDB_INC) -I$(AFP_INC)
 CC	= gcc
-CFLAGS= -g -Wall -fno-pie -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -O3 -mno-red-zone $(INC) -D__KERNEL__ $(EXTRA_CFLAGS)
+CFLAGS= -g -Wall -fno-pie -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -O3 -mno-red-zone $(INC) -D__KERNEL__ $(EXTRA_CFLAGS) -DNDEBUG
 LD	= g++
 LDFLAGS	= -T ix.ld -no-pie
 LDLIBS	= -lrt  -lpthread -lm -lnuma -ldl -lconfig $(LEVELDB_LIB) $(CONCORD_LIB) $(AFP_LIB) -lgflags -lsnappy -lz -llz4
