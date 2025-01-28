@@ -259,6 +259,70 @@ afp_server(void *buff)
   //  }
 }
 
+static void
+do_get ( char *key )
+{
+  size_t len;
+  char *value, *err = NULL;
+
+  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
+
+  value = leveldb_get ( db, readoptions, key, strlen ( key ), &len, &err );
+  free ( value );
+  free ( err );
+
+  leveldb_readoptions_destroy ( readoptions );
+}
+
+static void
+do_scan ( void )
+{
+  const char *retr_key;
+  size_t len;
+
+  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
+  leveldb_iterator_t *iter = leveldb_create_iterator ( db, readoptions );
+
+  leveldb_iter_seek_to_first ( iter );
+  while ( leveldb_iter_valid ( iter ) )
+    {
+      retr_key = leveldb_iter_key ( iter, &len );
+      ( void ) retr_key;
+      //#ifndef NDEBUG
+      //      char *err = NULL;
+      //      char *value = leveldb_get ( db, readoptions, retr_key, len, &len,
+      //      &err ); assert ( !err ); printf ( "key:%s value:%s\n", retr_key,
+      //      value );
+      //#endif
+      leveldb_iter_next ( iter );
+    }
+
+  leveldb_iter_destroy ( iter );
+  leveldb_readoptions_destroy ( readoptions );
+}
+
+static void
+leveldb_server(void *buff)
+{
+#define GET 1
+#define SCAN 2
+	uint64_t *data = buff;
+	uint32_t type = data[3];
+	uint64_t key = data[4];
+  
+  switch ( type )
+    {
+      case GET:
+        do_get ( ( char * ) &key );
+        break;
+      case SCAN:
+        do_scan ();
+        break;
+      default:
+        assert ( 0 && "Invalid request type" );
+    }
+}
+
 /**
  * generic_work - generic function acting as placeholder for application-level
  *                work
@@ -275,46 +339,8 @@ static void generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     void *data = (void *)((uint64_t)msw << 32 | lsw);
     int ret;
 
-    afp_server(data);
-
-    //struct message * req = (struct message *) data;
-
-    // Added for leveldb
-    // leveldb_readoptions_t *readoptions = leveldb_readoptions_create();
-    // leveldb_iterator_t *iter = leveldb_create_iterator(db, readoptions);
-    // for (leveldb_iter_seek_to_first(iter); leveldb_iter_valid(iter); leveldb_iter_next(iter))
-    // {
-    //     char *retr_key;
-    //     size_t klen;
-    //     retr_key = leveldb_iter_key(iter, &klen);
-    //     if (req->runNs > 0)
-    //         break;
-    // }
-    // leveldb_iter_destroy(iter);
-    // leveldb_readoptions_destroy(readoptions);
-
-    // uint64_t i = 0;
-    // do
-    // {
-    //     asm volatile("nop");
-    //     i++;
-    // } while (i / 0.233 < req->runNs);
-
-    //if(req->runNs == 5700){
-    //    simpleloop(BENCHMARK_DB_GET_SPIN);
-    //}
-    //else if (req->runNs == 6000) {
-    //    simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
-    //}
-    //else if (req->runNs == 20000) {
-    //    simpleloop(BENCHMARK_DB_PUT_SPIN);
-    //}
-    //else if (req->runNs == 88000) {
-    //    simpleloop(BENCHMARK_DB_DELETE_SPIN);
-    //}
-    // else {
-    //    simpleloop(BENCHMARK_DB_SEEK_SPIN);
-    //}
+    //afp_server(data);
+    leveldb_server(data);
 
     asm volatile ("cli":::);
 
