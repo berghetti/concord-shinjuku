@@ -263,6 +263,9 @@ static void
 do_get ( char *key )
 {
   size_t len;
+  //char *returned_value = cncrd_leveldb_get(db, roptions,
+  //                              key, strlen(key),
+  //                              &len, &err);
   char *value, *err = NULL;
 
   leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
@@ -277,6 +280,7 @@ do_get ( char *key )
 static void
 do_scan ( void )
 {
+  //cncrd_leveldb_scan(db,roptions, 'musa');
   const char *retr_key;
   size_t len;
 
