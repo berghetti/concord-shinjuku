@@ -263,9 +263,6 @@ static void
 do_get ( char *key )
 {
   size_t len;
-  //char *returned_value = cncrd_leveldb_get(db, roptions,
-  //                              key, strlen(key),
-  //                              &len, &err);
   char *value, *err = NULL;
 
   leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
@@ -280,7 +277,6 @@ do_get ( char *key )
 static void
 do_scan ( void )
 {
-  //cncrd_leveldb_scan(db,roptions, 'musa');
   const char *retr_key;
   size_t len;
 
@@ -292,12 +288,29 @@ do_scan ( void )
     {
       retr_key = leveldb_iter_key ( iter, &len );
       ( void ) retr_key;
-      //#ifndef NDEBUG
-      //      char *err = NULL;
-      //      char *value = leveldb_get ( db, readoptions, retr_key, len, &len,
-      //      &err ); assert ( !err ); printf ( "key:%s value:%s\n", retr_key,
-      //      value );
-      //#endif
+      leveldb_iter_next ( iter );
+    }
+
+  leveldb_iter_destroy ( iter );
+  leveldb_readoptions_destroy ( readoptions );
+}
+
+static void
+do_range_scan ( void )
+{
+  const char *retr_key;
+  size_t len;
+
+  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
+  leveldb_iterator_t *iter = leveldb_create_iterator ( db, readoptions );
+
+  int i = 0;
+  leveldb_iter_seek_to_first ( iter );
+  while ( leveldb_iter_valid ( iter ) && i < 100)
+    {
+      i++;
+      retr_key = leveldb_iter_key ( iter, &len );
+      ( void ) retr_key;
       leveldb_iter_next ( iter );
     }
 
@@ -309,7 +322,8 @@ static void
 leveldb_server(void *buff)
 {
 #define GET 1
-#define SCAN 2
+#define SCAN 3
+#define RANGE 2
 	uint64_t *data = buff;
 	uint32_t type = data[3];
 	uint64_t key = data[4];
@@ -321,6 +335,9 @@ leveldb_server(void *buff)
         break;
       case SCAN:
         do_scan ();
+        break;
+      case RANGE:
+        do_range_scan ();
         break;
       default:
         assert ( 0 && "Invalid request type" );
