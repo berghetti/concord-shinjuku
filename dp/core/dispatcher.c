@@ -147,36 +147,36 @@ static void requests_init() {
 }
 
 static void dispatcher_dl_init(){
-    printf("Loading plugin: %s\n", plugin_file);
-    dlerror();
-    char *err = NULL;
-    void *plugin = dlopen(plugin_file, RTLD_NOW);
-    if ((err = dlerror())) {
-        printf("Error loading plugin: %s\n",err);
-        exit(-1);
-    }
-    assert(plugin);
-
-	*(void **) (&dl_simpleloop) = dlsym(plugin, STRINGIFY(simpleloop));
-    if ((err = dlerror())) {
-        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
-        exit(-1);
-    }
-    assert(dl_simpleloop);
-
-	*(void **) (&dl_cncrd_leveldb_get) = dlsym(plugin, STRINGIFY(cncrd_leveldb_get));
-    if ((err = dlerror())) {
-        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
-        exit(-1);
-    }
-    assert(dl_cncrd_leveldb_get);
-    
-    *(void **) (&dl_cncrd_leveldb_scan) = dlsym(plugin, STRINGIFY(cncrd_leveldb_scan));
-    if ((err = dlerror())) {
-        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
-        exit(-1);
-    }
-    assert(dl_cncrd_leveldb_scan);
+//    printf("Loading plugin: %s\n", plugin_file);
+//    dlerror();
+//    char *err = NULL;
+//    void *plugin = dlopen(plugin_file, RTLD_NOW);
+//    if ((err = dlerror())) {
+//        printf("Error loading plugin: %s\n",err);
+//        exit(-1);
+//    }
+//    assert(plugin);
+//
+//	*(void **) (&dl_simpleloop) = dlsym(plugin, STRINGIFY(simpleloop));
+//    if ((err = dlerror())) {
+//        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
+//        exit(-1);
+//    }
+//    assert(dl_simpleloop);
+//
+//	*(void **) (&dl_cncrd_leveldb_get) = dlsym(plugin, STRINGIFY(cncrd_leveldb_get));
+//    if ((err = dlerror())) {
+//        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
+//        exit(-1);
+//    }
+//    assert(dl_cncrd_leveldb_get);
+//    
+//    *(void **) (&dl_cncrd_leveldb_scan) = dlsym(plugin, STRINGIFY(cncrd_leveldb_scan));
+//    if ((err = dlerror())) {
+//        printf("Error loading cncrd_leveldb_get symbol: %s\n",err);
+//        exit(-1);
+//    }
+//    assert(dl_cncrd_leveldb_scan);
 }
 
 
@@ -364,16 +364,6 @@ afp_server(void *buff)
 	uint32_t ns_sleep = data[5];
 
   fake_work_ns_rdtsc(ns_sleep);
-    
-  //if(type == 1)
-  //  {
-  //      // short
-  //      dl_simpleloop(BENCHMARK_DB_GET_SPIN);
-  //  }
-  //else
-  //  { 
-  //      dl_simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
-  //  }
 }
 
 static void
@@ -443,8 +433,8 @@ static void dispatcher_generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     int ret;
 
 
-    //afp_server(data);
-    leveldb_server(data);
+    afp_server(data);
+    // leveldb_server(data);
          
     asm volatile ("cli":::);
 

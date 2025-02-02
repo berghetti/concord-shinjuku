@@ -247,16 +247,6 @@ afp_server(void *buff)
 	uint32_t ns_sleep = data[5];
 
   fake_work_ns(ns_sleep);
-    
-  //if(type == 1)
-  //  {
-  //      // short
-  //      simpleloop(BENCHMARK_DB_GET_SPIN);
-  //  }
-  //else
-  //  { 
-  //      simpleloop(BENCHMARK_DB_ITERATOR_SPIN);
-  //  }
 }
 
 static void
@@ -360,8 +350,8 @@ static void generic_work(uint32_t msw, uint32_t lsw, uint32_t msw_id,
     void *data = (void *)((uint64_t)msw << 32 | lsw);
     int ret;
 
-    //afp_server(data);
-    leveldb_server(data);
+    afp_server(data);
+    //leveldb_server(data);
 
     asm volatile ("cli":::);
 
