@@ -228,10 +228,8 @@ static inline int eth_tx_xmit(struct eth_tx_queue *tx,
 static inline int eth_send(struct eth_tx_queue *txq, struct mbuf *mbuf)
 {
 	int nr = 1 + mbuf->nr_iov;
-	if (unlikely(nr > txq->cap)) {
-        log_debug("nr > txq->cap\n");
+	if (unlikely(nr > txq->cap))
 		return -EBUSY;
-    }
 
 	txq->bufs[txq->len++] = mbuf;
 	txq->cap -= nr;

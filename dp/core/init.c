@@ -48,10 +48,6 @@
 #include <ix/context.h>
 #include <ix/dispatch.h>
 
-// Added for leveldb
-#include <ix/leveldb.h>
-#include <leveldb/c.h>
-
 #include <asm/cpu.h>
 
 #include <net/ip.h>
@@ -66,7 +62,7 @@
 #include <ucontext.h>
 #include <time.h>
 
-#include "helpers.h"
+#include <leveldb/c.h>
 
 #define MSR_RAPL_POWER_UNIT 1542
 #define ENERGY_UNIT_MASK 0x1F00
@@ -97,17 +93,10 @@ extern int response_init_cpu(void);
 extern int context_init(void);
 extern void do_work(void);
 extern void do_networking(void);
-extern void do_fake_networking(int num_cpus);
 extern void do_dispatching(int num_cpus);
 
 extern struct mempool context_pool;
 extern struct mempool stack_pool;
-pthread_t tid[MAX_WORKERS];
-
-// Flag that controls whether interrupts are disabled during memory allocation.
-uint8_t flag;
-
-volatile bool INIT_FINISHED = false;
 
 struct init_vector_t {
 	const char *name;
@@ -127,7 +116,7 @@ static struct init_vector_t init_tbl[] = {
 	{ "firstcpu", init_firstcpu, NULL, NULL},             // after cfg
 	{ "mbuf",    mbuf_init,    mbuf_init_cpu, NULL},      // after firstcpu
 	{ "taskqueue", taskqueue_init, NULL, NULL},      // after firstcpu
-	{ "request", request_init, NULL, NULL},  // after firstcpu
+	{ "request", request_init, NULL, NULL},      // after firstcpu
 	{ "response", response_init, response_init_cpu, NULL},
 	{ "context", context_init, NULL},
         { "ethdev", init_ethdev, NULL, NULL},
@@ -140,12 +129,6 @@ static struct init_vector_t init_tbl[] = {
 	{ NULL, NULL, NULL, NULL}
 };
 
-// Leveldb variables 
-leveldb_t 				*db;
-leveldb_iterator_t 		*iter;
-leveldb_options_t 		*options;
-leveldb_readoptions_t 	*roptions;
-leveldb_writeoptions_t 	*woptions;
 
 static int init_argc;
 static char **init_argv;
@@ -307,10 +290,8 @@ static int init_create_cpu(unsigned int cpu, int first)
 		if (init_tbl[i].fcpu) {
 			ret = init_tbl[i].fcpu();
 			log_info("init: module %-10s on %d: %s \n", init_tbl[i].name, percpu_get(cpu_id), (ret ? "FAILURE" : "SUCCESS"));
-			if (ret) {	
-				printf("%d\n", ret);
+			if (ret)
 				panic("could not initialize IX\n");
-			}
 		}
         }
 
@@ -327,7 +308,7 @@ void *start_cpu(void *arg)
 	unsigned int cpu_nr_ = (unsigned int)(unsigned long) arg;
 	unsigned int cpu = CFG.cpu[cpu_nr_];
 
-  ret = init_create_cpu(cpu, 0);
+        ret = init_create_cpu(cpu, 0);
 	if (ret) {
 		log_err("init: failed to initialize CPU %d\n", cpu);
 		exit(ret);
@@ -337,39 +318,32 @@ void *start_cpu(void *arg)
 
 	percpu_get(cpu_nr) = cpu_nr_;
 
-	log_info("start_cpu: starting cpu-specific work\n");
-	if (cpu_nr_ == 1) {
-		ret = init_rx_queue();
-		if (ret) {
-						log_err("init: failed to initialize RX queue\n");
-						exit(ret);
-		}
+        log_info("start_cpu: starting cpu-specific work\n");
+        if (cpu_nr_ == 1) {
+                ret = init_rx_queue();
+                if (ret) {
+                        log_err("init: failed to initialize RX queue\n");
+                        exit(ret);
+                }
 
-		started_cpus++;
+	        started_cpus++;
 
-		// Wait until all TX queues are set up before starting ethernet
-		// device.
-		while (started_cpus != CFG.num_cpus - 1);
+                // Wait until all TX queues are set up before starting ethernet
+                // device.
+                while (started_cpus != CFG.num_cpus - 1);
 
-		ret = init_network_cpu();
-		if (ret) {
-						log_err("init: failed to initialize network cpu\n");
-						exit(ret);
-		}
-		pthread_barrier_wait(&start_barrier);
-		
-#ifndef FAKE_WORK
-		do_networking();
-#else
-		// generate_fake_requests_throughput();
-		do_fake_networking(CFG.num_cpus);
-#endif
-
-	} else {
-		started_cpus++;
-		pthread_barrier_wait(&start_barrier);
-		do_work();
-	}
+                ret = init_network_cpu();
+                if (ret) {
+                        log_err("init: failed to initialize network cpu\n");
+                        exit(ret);
+                }
+	        pthread_barrier_wait(&start_barrier);
+                do_networking();
+        } else {
+	        started_cpus++;
+	        pthread_barrier_wait(&start_barrier);
+                do_work();
+        }
 
 	return NULL;
 }
@@ -377,6 +351,8 @@ void *start_cpu(void *arg)
 static int init_hw(void)
 {
 	int i, ret = 0;
+	pthread_t tid;
+
 	// will spawn per-cpu initialization sequence on CPU0
 	ret = init_create_cpu(CFG.cpu[0], 1);
 	if (ret) {
@@ -387,7 +363,7 @@ static int init_hw(void)
 	percpu_get(cpu_nr) = 0;
 
 	for (i = 1; i < CFG.num_cpus; i++) {
-		ret = pthread_create(&tid[i-1], NULL, start_cpu, (void *)(unsigned long) i);
+		ret = pthread_create(&tid, NULL, start_cpu, (void *)(unsigned long) i);
 		if (ret) {
 			log_err("init: unable to create pthread\n");
 			return -EAGAIN;
@@ -435,6 +411,9 @@ static int init_firstcpu(void)
 	return ret;
 }
 
+// Leveldb variables 
+leveldb_t 				*db;
+
 int main(int argc, char *argv[])
 {
 	int ret, i;
@@ -449,52 +428,21 @@ int main(int argc, char *argv[])
 		if (init_tbl[i].f) {
 			ret = init_tbl[i].f();
 			log_info("init: module %-10s %s\n", init_tbl[i].name, (ret ? "FAILURE" : "SUCCESS"));
-			if (ret) {	
-				printf("%d\n", ret);
+			if (ret)
 				panic("could not initialize IX\n");
-			}
-    }
-  }
-  
-	log_info("init done\n");
-
-	options  = leveldb_options_create();
-	roptions = leveldb_readoptions_create();
-	woptions = leveldb_writeoptions_create();
-	//leveldb_options_set_create_if_missing(options, 1);
+                }
+        }
+        log_info("init done\n");
 	
+		
+		leveldb_options_t 		*options;
+		options  = leveldb_options_create();
+		char *err = NULL;
+		db = leveldb_open(options, "/tmpfs/my_db", &err);
+		//assert(!err);
 
-	char *err = NULL;
-  db = leveldb_open(options, "/tmpfs/my_db", &err);
-	assert(!err);
-
-	//char * db_err;
-	//int len;
-	//leveldb_put(db, woptions, "mykey", 5, "myval", 5, &db_err);
-
-	//char * retdb = leveldb_get(db, roptions, "mykey", 5, &len, &db_err);
-	//log_info("read data db: %s \n", retdb);
-	//// assert(strcmp(retdb,"myval") == 0);
-
-	//// prepare_complex_db(db, DB_NUM_KEYS, woptions);
-	//prepare_simple_db(db, DB_NUM_KEYS, woptions);
-	//check_db_sequential(db, DB_NUM_KEYS,roptions);
-
-	flag = 1;
-
-	log_info("Init Leveldb - with prefilled random key-values\n");
-	uint64_t start_time = get_us();
-	while(get_us() - start_time < 2*1000000);
-	INIT_FINISHED = true;
-
-  do_dispatching(CFG.num_cpus);
-	log_info("Killing all threads");
-	for (i = 0; i < CFG.num_cpus-1; i++) {
-		pthread_kill(tid[i],9);
-	}
-
-	log_info("Closing DB\n");
-	leveldb_close(db);
+        do_dispatching(CFG.num_cpus);
+	log_info("finished handling contexts, looping forever...\n");
 	return 0;
 }
 

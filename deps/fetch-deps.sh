@@ -113,18 +113,8 @@ trap Main__exitHandler EXIT
 
 git_clone_checkout()
 {
-  git clone --recurse-submodules "$1" "$2" || echo "$0: warning: git clone failed."
+  git clone "$1" "$2" || echo "$0: warning: git clone failed."
   git -C "$2" checkout "$3" || echo "$0: warning git chechout failed."
-}
-
-fix_dpdk_error()
-{
-  sed -i '41i #include <sys/sysmacros.h>' "$1"/dpdk/lib/librte_eal/linuxapp/eal/eal_pci_uio.c
-}
-
-install_leveldb_dependencies()
-{
-    sudo apt-get install libgflags-dev libsnappy-dev liblz4-dev
 }
 
 Main__main()
@@ -150,9 +140,6 @@ Main__main()
         git_clone_checkout "$src" "$DIR/$dst" "$tag"
     done < "$argv__DEPFILE"
 
-    fix_dpdk_error "$DIR"
-
-    install_leveldb_dependencies
     exit 0
 }
 
@@ -160,3 +147,4 @@ Main__main()
 #trap exit INT TERM EXIT
 
 Main__main "$@"
+

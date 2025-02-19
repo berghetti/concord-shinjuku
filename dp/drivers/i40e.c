@@ -364,16 +364,16 @@ static int i40e_rx_poll(struct eth_rx_queue *rx)
 
 		error_bits = (qword1 >> I40E_RXD_QW1_ERROR_SHIFT);
 		/* Check IP checksum calculated by hardware (if applicable) */
-		// if (unlikely(error_bits & (1 << I40E_RX_DESC_ERROR_IPE_SHIFT))) {
-		// 	log_err("i40e: IP RX checksum error, dropping pkt\n");
-		// 	valid_checksum = false;
-		// }
+		//if (unlikely(error_bits & (1 << I40E_RX_DESC_ERROR_IPE_SHIFT))) {
+		//	log_err("i40e: IP RX checksum error, dropping pkt\n");
+		//	valid_checksum = false;
+		//}
 
-		// /* Check TCP checksum calculated by hardware (if applicable) */
-		// if (unlikely(error_bits & (1 << I40E_RX_DESC_ERROR_L4E_SHIFT))) {
-		// 	log_err("i40e: TCP RX checksum error, dropping pkt\n");
-		// 	valid_checksum = false;
-		// }
+		/* Check TCP checksum calculated by hardware (if applicable) */
+		//if (unlikely(error_bits & (1 << I40E_RX_DESC_ERROR_L4E_SHIFT))) {
+		//	log_err("i40e: TCP RX checksum error, dropping pkt\n");
+		//	valid_checksum = false;
+		//}
 
 		/* translate descriptor info into mbuf parameters */
 		b = rxqe->mbuf;

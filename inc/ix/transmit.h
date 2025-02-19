@@ -38,13 +38,6 @@
 #include <net/udp.h>
 #include <net/ethernet.h>
 
-struct myresponse
-{
-    uint64_t id;
-    uint64_t ts;
-    char msg [256];
-};
-
 /**
  * ip_setup_header outputs a typical IP header
  * @iphdr: a pointer to the header
@@ -71,8 +64,6 @@ static inline void ip_setup_header(struct ip_hdr *iphdr, uint8_t proto,
 
 DECLARE_PERCPU(struct mempool, response_pool);
 struct mempool_datastore response_datastore;
-struct mempool_datastore network_datastore;
-
 
 /**
  * udp_mbuf_done frees mbuf after the transmission of a UDP packet
@@ -99,16 +90,12 @@ static inline int udp_send_one(void * data, size_t len, struct ip_tuple * id)
 	int ret = 0;
 	struct mbuf *pkt;
 
-	if (unlikely(len > UDP_MAX_LEN)) {
-                log_debug("len > UDP_MAX_LEN\n");
+	if (unlikely(len > UDP_MAX_LEN))
 		return -RET_INVAL;
-        }
 
 	pkt = mbuf_alloc_local();
-	if (unlikely(!pkt)) {
-                log_debug("!pkt\n");
+	if (unlikely(!pkt))
 		return -RET_NOBUFS;
-        }  
 
 	struct eth_hdr *ethhdr = mbuf_mtod(pkt, struct eth_hdr *);
 	struct ip_hdr *iphdr = mbuf_nextd(ethhdr, struct ip_hdr *);
@@ -119,7 +106,6 @@ static inline int udp_send_one(void * data, size_t len, struct ip_tuple * id)
 
 	dst_addr.addr = id->dst_ip;
 	if (arp_lookup_mac(&dst_addr, &ethhdr->dhost)) {
-                log_debug("arp_lookup_mac failed for ip %d\n", dst_addr.addr);
 		ret = -RET_AGAIN;
 		goto out;
         }
@@ -156,27 +142,6 @@ out:
 	mbuf_free(pkt);
 	return ret;
 }
-
-static inline int fake_network_send(int id, uint64_t ts, char * str, int str_len)
-{
-        int ret = 0;
-        struct mbuf *pkt;
-        struct myresponse * _response;
-
-        pkt = mbuf_alloc_local();
-
-        _response = mbuf_mtod(pkt, struct myresponse *);
-        _response->id = id;
-        _response->ts = ts;
-        strncpy(_response->msg, str, str_len);
-       
-        ret = eth_send(percpu_get(eth_txqs)[0], pkt);
-
-        mbuf_free(pkt);
-        return ret;
-}
-
-
 
 /**
  * udp_send sends a UDP packet

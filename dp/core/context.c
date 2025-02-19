@@ -31,8 +31,8 @@
 #include <ix/mempool.h>
 
 #define CONTEXT_CAPACITY    768*1024
-#define STACK_CAPACITY      (768*1024) / 2
-#define STACK_SIZE          2048 * 2
+#define STACK_CAPACITY      768*1024
+#define STACK_SIZE          2048
 
 static int context_init_mempool(void)
 {

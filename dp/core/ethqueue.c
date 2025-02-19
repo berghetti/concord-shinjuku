@@ -45,34 +45,6 @@
 DEFINE_PERCPU(int, eth_num_queues);
 DEFINE_PERCPU(struct eth_tx_queue *, eth_txqs[NETHDEV]);
 
-struct myresponse
-{
-    uint64_t id;
-	uint64_t ts;
-    char msg [256];
-};
-
-
-void fake_eth_process_send(void)
-{
-	int i, nr;
-	struct eth_tx_queue *txq;
-	struct myresponse * rsp;
-
-	for (i = 0; i < percpu_get(eth_num_queues); i++) {
-		txq = percpu_get(eth_txqs[i]);
-
-		if(txq->len == 0) {
-			break;
-		}
-
-	    rsp = mbuf_mtod(txq->bufs[0], struct myresponse *);
-
-		printf("Received : %d ts: %llu \n", ((struct myresponse *)rsp)->id, ((struct myresponse *)rsp)->ts);
-
-		txq->len = 0;
-	}
-}
 /**
  * eth_process_send - processes packets pending to be sent
  */

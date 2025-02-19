@@ -27,7 +27,8 @@ There is currently no binary distribution of Shinjuku. You will therefore have t
 
 2. Build the dependencies, set up the environment, and run Shinjuku:
    ```
-   cp s3.conf shinjuku.conf
+   cp shinjuku.conf.sample shinjuku.conf
+   # modify at least host_addr, gateway_addr, devices, cpu, and arp address (add client address)
    ./setup.sh
    ./build_and_run.sh
    ```

@@ -310,18 +310,18 @@ static int ixgbe_rx_poll(struct eth_rx_queue *rx)
 		rxqe = &rxq->ring_entries[rxq->head & (rxq->len - 1)];
 
 		/* Check IP checksum calculated by hardware (if applicable) */
-		// if (unlikely((rxdp->wb.upper.status_error & IXGBE_RXD_STAT_IPCS) &&
-		// 	     (rxdp->wb.upper.status_error & IXGBE_RXDADV_ERR_IPE))) {
-		// 	log_err("ixgbe: IP RX checksum error, dropping pkt\n");
-		// 	valid_checksum = false;
-		// }
+		if (unlikely((rxdp->wb.upper.status_error & IXGBE_RXD_STAT_IPCS) &&
+			     (rxdp->wb.upper.status_error & IXGBE_RXDADV_ERR_IPE))) {
+			log_err("ixgbe: IP RX checksum error, dropping pkt\n");
+			valid_checksum = false;
+		}
 
-		// /* Check TCP checksum calculated by hardware (if applicable) */
-		// if (unlikely((rxdp->wb.upper.status_error & IXGBE_RXD_STAT_L4CS) &&
-		// 	     (rxdp->wb.upper.status_error & IXGBE_RXDADV_ERR_TCPE))) {
-		// 	log_err("ixgbe: TCP RX checksum error, dropping pkt\n");
-		// 	valid_checksum = false;
-		// }
+		/* Check TCP checksum calculated by hardware (if applicable) */
+		if (unlikely((rxdp->wb.upper.status_error & IXGBE_RXD_STAT_L4CS) &&
+			     (rxdp->wb.upper.status_error & IXGBE_RXDADV_ERR_TCPE))) {
+			log_err("ixgbe: TCP RX checksum error, dropping pkt\n");
+			valid_checksum = false;
+		}
 
 		b = rxqe->mbuf;
 		b->len = le32_to_cpu(rxd.wb.upper.length);
