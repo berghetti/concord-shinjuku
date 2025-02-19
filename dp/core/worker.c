@@ -73,6 +73,7 @@
 #define gettid() ((pid_t)syscall (SYS_gettid))
 
 extern volatile int *cpu_preempt_points[MAX_WORKERS];
+extern uint64_t time_slice;
 
 __thread int concord_preempt_now;
 __thread int concord_lock_counter;
@@ -679,7 +680,10 @@ handle_request (void)
 {
   while (dispatcher_requests[cpu_nr_].requests[active_req].flag != READY)
     ;
-  preempt_check[cpu_nr_].timestamp = rdtsc ();
+
+  preempt_check[cpu_nr_].timestamp = rdtsc () + time_slice;
+  concord_preempt_now = 0;
+  asm volatile("" ::: "memory");
   preempt_check[cpu_nr_].check = true;
   if (dispatcher_requests[cpu_nr_].requests[active_req].category == PACKET)
     handle_new_packet ();
@@ -702,8 +706,11 @@ handle_fake_request (void)
   // if(cpu_nr_ == MAGIC_CPU)
   //     idle_timestamps[idle_timestamp_iterator].start_req = rdtsc();
 
-  preempt_check[cpu_nr_].timestamp = rdtsc ();
+  printf ("%lu\n", time_slice);
+  preempt_check[cpu_nr_].timestamp = rdtsc () + time_slice;
+  asm volatile("" ::: "memory");
   preempt_check[cpu_nr_].check = true;
+  concord_preempt_now = 0;
   if (dispatcher_requests[cpu_nr_].requests[active_req].category == PACKET)
     {
       if (unlikely (!IS_FIRST_PACKET))
@@ -717,6 +724,7 @@ handle_fake_request (void)
     {
       handle_context ();
     }
+  preempt_check[cpu_nr_].check = false;
   /* Turn on to debug time lost in waiting for new req */
   // if(cpu_nr_ == MAGIC_CPU)
   //     idle_timestamps[idle_timestamp_iterator].after_ctx = rdtsc();
