@@ -316,37 +316,13 @@ do_scan (void)
 }
 
 static void
-do_range_scan (void)
-{
-  const char *retr_key;
-  size_t len;
-
-  leveldb_readoptions_t *readoptions = leveldb_readoptions_create ();
-  leveldb_iterator_t *iter = leveldb_create_iterator (db, readoptions);
-
-  int i = 0;
-  leveldb_iter_seek_to_first (iter);
-  while (leveldb_iter_valid (iter) && i < 100)
-    {
-      i++;
-      retr_key = leveldb_iter_key (iter, &len);
-      (void)retr_key;
-      leveldb_iter_next (iter);
-    }
-
-  leveldb_iter_destroy (iter);
-  leveldb_readoptions_destroy (readoptions);
-}
-
-static void
 leveldb_server (void *buff)
 {
 #define GET 1
-#define SCAN 3
-#define RANGE 2
+#define SCAN 2
   uint64_t *data = buff;
   uint32_t type = data[3];
-  uint64_t key = data[4];
+  uint64_t key = data[5];
 
   switch (type)
     {
@@ -355,9 +331,6 @@ leveldb_server (void *buff)
       break;
     case SCAN:
       do_scan ();
-      break;
-    case RANGE:
-      do_range_scan ();
       break;
     default:
       assert (0 && "Invalid request type");
@@ -379,8 +352,11 @@ generic_work (uint32_t msw, uint32_t lsw, uint32_t msw_id, uint32_t lsw_id)
   void *data = (void *)((uint64_t)msw << 32 | lsw);
   int ret;
 
+#ifdef DB
+  leveldb_server (data);
+#else
   afp_server (data);
-  // leveldb_server(data);
+#endif
 
   asm volatile("cli" :::);
 

@@ -71,6 +71,10 @@ ifneq ($(DEBUG),)
 CFLAGS += -DDEBUG
 endif
 
+ifneq ($(DB),)
+CFLAGS += -DDB
+endif
+
 ifneq ($(ENABLE_KSTATS),)
 CFLAGS += -DENABLE_KSTATS
 endif
